@@ -1,0 +1,210 @@
+% Packages
+% sudo tlmgr install silence appendixnumberbeamer fira fontaxes mwe noto csquotes babel helvet
+%--- Preamble ---------------------------------------------------------%
+% Load LaTeX packages
+\documentclass[aspectratio=169]{beamer}                    % supports floating text in any location
+%\usetheme[noto, showmaxslides, darkmode]{pureminimalistic}
+\usetheme[noto, showmaxslides, lightmode]{pureminimalistic}
+\graphicspath{{logos/}}
+
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes,xpatch}% recommended
+%\usepackage[english]{babel}
+\usepackage[american]{babel}
+\babelprovide[import, main]{english}
+\usepackage{tikz}
+
+% \renewcommand{\pageword}{}
+% \renewcommand{\logoheader}{\vspace{1.5em}}
+
+\usepackage[
+	%    natbib=true,
+	backend=biber,
+	%    style=abnt,
+	%    style=authoryear-comp,
+	%    style=authoryear,
+	style=ieee,
+	%    style=acm,
+	%    style=apalike,
+	%    style=siam,
+	%    style=ieeetr,
+	%    style=plain,
+	doi=true,
+	eprint=false,
+	hyperref=true]
+{biblatex}
+\addbibresource{references.bib}
+
+%% this makes it possible to add backup slides, without counting them
+\usepackage{appendixnumberbeamer}
+\renewcommand{\appendixname}{\texorpdfstring{\translate{appendix}}{appendix}}
+% logos
+
+% footer page
+\renewcommand{\pageword}{Slide}
+
+% Math Font Default (Fira is strange)
+\renewcommand\mathfamilydefault{\rmdefault}
+
+% if loaded after begin{document} a warning will appear: "pdfauthor already used"
+\title[\texttt{OptimalDesign.jl}]{Model-based optimal design of experiments with Pumas: \texttt{OptimalDesign.jl}}
+\author[PumasAI]{Jose Storopoli and Mohamed Tarek \quad
+	\texttt{[jose.storopoli|mohamed]@pumas.ai}}
+\institute{PumasAI}
+\date{\today}
+
+\begin{document}
+% has to be loaded outside of a frame to work!
+\maketitle
+
+% For longer table of contents, I find it cleaner to
+% use no footline.
+\begin{frame}[plain, noframenumbering]{Outline}
+	\tableofcontents
+\end{frame}
+
+\section{Motivation}
+\begin{frame}{Model-based}
+	\begin{vfilleditems}
+		\item $M$ -- parametric model.
+		\item $\theta \in \Theta$ -- model parameters.
+		\item $(M, \Theta)$ -- hypothesis.
+	\end{vfilleditems}
+\end{frame}
+
+\begin{frame}{Why Optimal Design?}
+	\begin{vfilleditems}
+		\item Which model $M$ best describes the drug's effect?
+		\item Which parameters $\theta$ are the best estimates?
+		\item How to quantify the uncertainty in those $\theta$?
+	\end{vfilleditems}
+\end{frame}
+
+\begin{frame}{Which model $M$ best describes the drug's effect?}
+	Not committing to a particular model M and instead collecting data
+	that would let us learn the parameter values of multiple models
+	$M_1, M_2, \ldots , M_n$ simultaneously.
+\end{frame}
+
+\begin{frame}{Which parameters $\theta$ are the best estimates?}
+	Not committing to particular parameter values $\theta_i$ for
+	each model $M_i$ and instead using a set of values
+	$\Theta_i: \theta_i \in \Theta_i$,
+	e.g. a discrete set of specific parameter values or a continuous set.
+\end{frame}
+
+\begin{frame}{How to quantify the uncertainty in those $\theta$?}
+	Using the expected Fisher information matrix (FIM) instead of the
+	observed one to estimate the expected standard errors at each parameter
+	value $\theta_i \in \Theta_i$.
+\end{frame}
+
+\section{Fisher Information Matrix -- FIM}
+\begin{frame}{Fisher Information Matrix -- FIM}
+	\begin{vfilleditems}
+		\item \textbf{Fisher information} is a way of measuring the amount of information that an observable
+		random variable $X$ carries about an unknown parameter $\theta$
+		upon which the probability of $X$ depends.
+		\item Formally, it is the expected value of the observed information,
+		which in turn is the \textbf{negative of the second derivative of the loglikelihood}.
+		\item if $\theta$ is \textit{not} a scalar, then the information
+		is expressed as a matrix, FIM, with the second derivative becoming
+		the \textbf{Hessian matrix}:
+		$$
+			-\operatorname{E}_{p(x \mid \theta)} \left[ \mathbf{H}_{\log p(x \mid \theta)} \right]
+		$$
+	\end{vfilleditems}
+\end{frame}
+
+\begin{frame}{Fisher Information Matrix Properties}
+	\begin{vfilleditems}
+		\item $N \times N$ positive semidefinite.
+		\item symmetric, if second partial derivatives are all continuous.
+	\end{vfilleditems}
+\end{frame}
+
+\section{Optimal Design Objective}
+\begin{frame}{Optimal Design Objective}
+	\small
+	There are a number of possible objectives that correspond to maximizing the
+	information learned in the optimal experiment design:
+	\begin{vfilleditems}
+		\item \textbf{A-optimality}:
+		\begin{vfilleditems}
+			\item \textbf{minimizing} the \textbf{trace} of the inverse of the expected FIM.
+			\item minimizing the sum of the expected standard errors.
+		\end{vfilleditems}
+		\item \textbf{D-optimality}:
+		\begin{vfilleditems}
+			\item \textbf{maximizing} the \textbf{determinant} of the expected FIM.
+			\item maximizing the product of the eigenvalues of the expected FIM.
+			\item which indirectly minimizes the expected standard errors.
+		\end{vfilleditems}
+		\item \textbf{T-optimality}:
+		\begin{vfilleditems}
+			\item \textbf{maximizing} the \textbf{trace} of the expected FIM.
+			\item maximizing the sum of the eigenvalues of the expected FIM.
+			\item which is also roughly correlated to minimizing the
+			sum of the expected standard errors but giving more weight
+			to the parameters with smaller standard errors.
+		\end{vfilleditems}
+	\end{vfilleditems}
+\end{frame}
+
+\section{Optimal Design in Pumas}
+\begin{frame}{Optimal Design in Pumas}
+	\begin{vfilleditems}
+		\item There are a number of degrees of freedom that an experiment designer can
+		control when designing an experiment.
+		\item This leads to different types of optimization problems,
+		or so-called optimal design tasks.
+		\item Currently\footnote{Pumas version \texttt{2.2}},
+		the main optimal design task supported in Pumas is the
+		\textbf{sample time optimization}.
+	\end{vfilleditems}
+\end{frame}
+
+\begin{frame}{Sample Time Optimization}
+	The following are assumed to be \textbf{fixed}:
+	\begin{vfilleditems}
+		\item Model and parameter values, e.g. from a similar study.
+		\item Subjects' covariates, a.k.a. subject templates, e.g.
+		typical values in the target population.
+		\item Number of replicas of each subject template,
+		using best practices in randomized sampling.
+		\item Dosing regimen of each subject,
+		e.g. from initial simulations to avoid toxicity.
+		\item Number of observations per subject template.
+	\end{vfilleditems}
+	The \textbf{only degree of freedom allowed to change is which times the observations
+	are to be made for each subject template}.
+\end{frame}
+
+\begin{frame}{Sample Time Optimization}
+	The same optimal design task may be \textbf{repeated for different values of the
+	other fixed degrees of freedom},
+	e.g. different dosing regimens or number of subjects/observations,
+	to find a satisfactory design.
+	\vfill
+	This parametric study is a form of naive
+	\textbf{search-based, bi-level optimization}\footnote{
+		Bilevel optimization is a special kind of optimization where one problem is embedded (nested) within another.
+		The outer optimization task is commonly referred to as the upper-level optimization task,
+		and the inner optimization task is commonly referred to as the lower-level optimization task.}.
+\end{frame}
+
+\section{Selected Literature}
+\begin{frame}[allowframebreaks]{Selected Literature}
+	\printbibliography
+\end{frame}
+
+% \appendix % do not count the following slides for the total number
+% \section*{Backup Slides}
+% \begin{frame}[plain, noframenumbering]
+% 	\centering
+% 	\vfill
+% 	{\fontsize{40}{50}\selectfont Backup Slides}
+% 	\vfill
+% \end{frame}
+
+\end{document}

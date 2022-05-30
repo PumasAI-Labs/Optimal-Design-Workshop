@@ -42,21 +42,21 @@
 
 % invertcolor is already processed in colortheme
 \ifthenelse{\boolean{darkmode}}{%
-  \newcommand{\headerpath}{uninove_black.png}
-  \newcommand{\institutepath}{uninove_black.png}
+  \newcommand{\headerpath}{Pumas_logo_white_blue_800x300.png}
+  \newcommand{\institutepath}{Pumas_logo_white_blue_800x300.png}
 }{%
-  \newcommand{\headerpath}{uninove_black.png}
-  \newcommand{\institutepath}{uninove_black.png}
+  \newcommand{\headerpath}{Pumas_logo_black_800x300.png}
+  \newcommand{\institutepath}{Pumas_logo_black_800x300.png}
 }
 % The header shares the horizontal space with the frame title in normal mode
 % a relative width value between .5 and .8 should usually be the best
 \newcommand{\logoheader}{\includegraphics[width=.5\linewidth]{\headerpath}}
 % For the title page, the logo is embedded in the total frame, meaning that \linewidth
 % here refers to the complete \paperwidth, small width values of < .4 are usually best.
-\newcommand{\logotitle}{\includegraphics[width=.2\linewidth]{\headerpath}}
+\newcommand{\logotitle}{\includegraphics[width=.4\linewidth]{\headerpath}}
 % The footer will only use part of the space under the line. Usually almost the
 % full linewidth should be used
-\newcommand{\logofooter}{\includegraphics[width=.7\linewidth]{\institutepath}}
+\newcommand{\logofooter}{\includegraphics[width=.4\linewidth]{\institutepath}}
 
 \newcommand{\pageword}{Page}
 \newcommand{\showpagenum}{%
