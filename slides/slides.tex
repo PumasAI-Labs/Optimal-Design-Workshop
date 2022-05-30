@@ -167,22 +167,22 @@
 \begin{frame}{Sample Time Optimization}
 	The following are assumed to be \textbf{fixed}:
 	\begin{vfilleditems}
-		\item Model and parameter values, e.g. from a similar study.
-		\item Subjects' covariates, a.k.a. subject templates, e.g.
+		\item \textbf{model and parameter values}, e.g. from a similar study.
+		\item \textbf{subjects' covariates}, a.k.a. subject templates, e.g.
 		typical values in the target population.
-		\item Number of replicas of each subject template,
+		\item \textbf{number of replicas of each subject template},
 		using best practices in randomized sampling.
-		\item Dosing regimen of each subject,
+		\item \textbf{dosing regimen of each subject},
 		e.g. from initial simulations to avoid toxicity.
-		\item Number of observations per subject template.
+		\item \textbf{number of observations per subject template}.
 	\end{vfilleditems}
 	The \textbf{only degree of freedom allowed to change is which times the observations
-	are to be made for each subject template}.
+		are to be made for each subject template}.
 \end{frame}
 
 \begin{frame}{Sample Time Optimization}
 	The same optimal design task may be \textbf{repeated for different values of the
-	other fixed degrees of freedom},
+		other fixed degrees of freedom},
 	e.g. different dosing regimens or number of subjects/observations,
 	to find a satisfactory design.
 	\vfill
@@ -193,6 +193,17 @@
 		and the inner optimization task is commonly referred to as the lower-level optimization task.}.
 \end{frame}
 
+\begin{frame}{Sample Time Optimization -- Constraints}
+	Some possible \textbf{constraints} to consider when doing sample time optimization are:
+	\begin{vfilleditems}
+		\item \textbf{lower and upper bounds on the sample times},
+		e.g. the start and end date of the data collection part of the study.
+		\item \textbf{minimum offset between any two consecutive observations}.
+		\item \textbf{time window constraints},
+		e.g. the working hours of the clinical staff.
+		\item \textbf{maximum and/or minimum number of measurements per time window}.
+	\end{vfilleditems}
+\end{frame}
 \section{Selected Literature}
 \begin{frame}[allowframebreaks]{Selected Literature}
 	\printbibliography
