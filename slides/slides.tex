@@ -22,18 +22,23 @@
 	backend=biber,
 	%    style=abnt,
 	%    style=authoryear-comp,
-	%    style=authoryear,
-	style=ieee,
+	style=authoryear,
+	%    style=ieee,
 	%    style=acm,
 	%    style=apalike,
 	%    style=siam,
 	%    style=ieeetr,
 	%    style=plain,
+	%    style=vancouver,
 	doi=true,
 	eprint=false,
 	hyperref=true]
 {biblatex}
 \addbibresource{references.bib}
+% biblatex
+\renewcommand*{\bibfont}{\footnotesize}
+% natbib
+%\def\bibfont{\footnotesize}
 
 %% this makes it possible to add backup slides, without counting them
 \usepackage{appendixnumberbeamer}
@@ -48,8 +53,7 @@
 
 % if loaded after begin{document} a warning will appear: "pdfauthor already used"
 \title[\texttt{OptimalDesign.jl}]{Model-based optimal design of experiments with Pumas: \texttt{OptimalDesign.jl}}
-\author[PumasAI]{Jose Storopoli and Mohamed Tarek \quad
-	\texttt{[jose.storopoli|mohamed]@pumas.ai}}
+\author[PumasAI]{Jose Storopoli and Mohamed Tarek \texttt{\{jose.storopoli,mohamed\}@pumas.ai}}
 \institute{PumasAI}
 \date{\today}
 
@@ -125,23 +129,27 @@
 
 \section{Optimal Design Objective}
 \begin{frame}{Optimal Design Objective}
-	\small
+	\footnotesize
 	There are a number of possible objectives that correspond to maximizing the
 	information learned in the optimal experiment design:
 	\begin{vfilleditems}
+		\footnotesize
 		\item \textbf{A-optimality}:
 		\begin{vfilleditems}
+			\footnotesize
 			\item \textbf{minimizing} the \textbf{trace} of the inverse of the expected FIM.
 			\item minimizing the sum of the expected standard errors.
 		\end{vfilleditems}
 		\item \textbf{D-optimality}:
 		\begin{vfilleditems}
+			\footnotesize
 			\item \textbf{maximizing} the \textbf{determinant} of the expected FIM.
 			\item maximizing the product of the eigenvalues of the expected FIM.
 			\item which indirectly minimizes the expected standard errors.
 		\end{vfilleditems}
 		\item \textbf{T-optimality}:
 		\begin{vfilleditems}
+			\footnotesize
 			\item \textbf{maximizing} the \textbf{trace} of the expected FIM.
 			\item maximizing the sum of the eigenvalues of the expected FIM.
 			\item which is also roughly correlated to minimizing the
@@ -205,7 +213,8 @@
 	\end{vfilleditems}
 \end{frame}
 \section{Selected Literature}
-\begin{frame}[allowframebreaks]{Selected Literature}
+\begin{frame}[allowframebreaks, noframenumbering]{Selected Literature}
+	\nocite{*}
 	\printbibliography
 \end{frame}
 
