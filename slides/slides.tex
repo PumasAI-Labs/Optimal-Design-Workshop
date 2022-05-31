@@ -22,14 +22,14 @@
 	backend=biber,
 	%    style=abnt,
 	%    style=authoryear-comp,
-	style=authoryear,
+        %    style=authoryear,
 	%    style=ieee,
 	%    style=acm,
 	%    style=apalike,
 	%    style=siam,
 	%    style=ieeetr,
 	%    style=plain,
-	%    style=vancouver,
+	style=vancouver,
 	doi=true,
 	eprint=false,
 	hyperref=true]
@@ -53,13 +53,14 @@
 
 % if loaded after begin{document} a warning will appear: "pdfauthor already used"
 \title[\texttt{OptimalDesign.jl}]{Model-based optimal design of experiments with Pumas: \texttt{OptimalDesign.jl}}
-\author[PumasAI]{Jose Storopoli and Mohamed Tarek \texttt{\{jose.storopoli,mohamed\}@pumas.ai}}
-\institute{PumasAI}
+\author[\textcolor{pureminimalistic@text@pumasblue}{PumasAI}]{Jose Storopoli and Mohamed Tarek \texttt{\{jose.storopoli,mohamed\}@pumas.ai}}
+\institute{\textcolor{pureminimalistic@text@pumasblue}{PumasAI}}
 \date{\today}
 
 \begin{document}
 % has to be loaded outside of a frame to work!
 \maketitle
+\nocite{*}
 
 % For longer table of contents, I find it cleaner to
 % use no footline.
@@ -85,7 +86,7 @@
 \end{frame}
 
 \begin{frame}{Which model $M$ best describes the drug's effect?}
-	Not committing to a particular model M and instead collecting data
+	Not committing to a particular model $M_i$ and instead collecting data
 	that would let us learn the parameter values of multiple models
 	$M_1, M_2, \ldots , M_n$ simultaneously.
 \end{frame}
@@ -214,7 +215,6 @@
 \end{frame}
 \section{Selected Literature}
 \begin{frame}[allowframebreaks, noframenumbering]{Selected Literature}
-	\nocite{*}
 	\printbibliography
 \end{frame}
 
