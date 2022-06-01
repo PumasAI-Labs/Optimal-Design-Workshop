@@ -9,7 +9,7 @@ datapath = dataset("warfarin.csv", String)
 df = CSV.read(datapath, DataFrame; missingstring=[".", "", "NA"])
 pop = read_pumas(df)
 
-### Model
+### Step 1 - Model
 # 1-cmt oral model
 model = @model begin
   @param begin
@@ -49,7 +49,7 @@ params = (
   σ  = sqrt(0.01),
 )
 
-### Date and time API in Julia
+### Interlude - Date and time API in Julia
 ## `Date` constructors
 # 25 Jan 2021
 Date(2021, 1, 25)
@@ -96,7 +96,7 @@ bounds = Dict(
 )
 
 
-### Create a decision
+### Step 2 - Create a decision with constraints
 ## Decision variables
 Nsubjects = length(pop)
 ## Decision
@@ -111,7 +111,7 @@ dec = decision(
   model_time_unit=Hour(1),     # unit of time assumed in the model definition and dynamics model
 )
 
-### Optimize the design
+### Step 3 - Optimize the design
 # :aoptimal: minimizes the trace of the inverse of the expected information matrix.
 # :doptimal: maximizes the (log) determinant of the expected information matrix.
 # :toptimal: maximizes the trace of the expected information matrix.
