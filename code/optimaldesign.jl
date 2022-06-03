@@ -1,13 +1,28 @@
-using OptimalDesign
+using OptimalDesign # this already imports Pumas
+using PumasUtilities
+using DataFramesMeta
 using PharmaDatasets
 
 ### Warfarin - anticoagulant (https://en.wikipedia.org/wiki/Warfarin)
 # data from Bauer et. al 
 # Tutorial for $DESIGN in NONMEM: Clinical trial evaluation and optimization
 # DOI: 10.1002/psp4.12713
-datapath = dataset("warfarin.csv", String)
+datapath = dataset("warfarin", String)
 df = CSV.read(datapath, DataFrame; missingstring=[".", "", "NA"])
 pop = read_pumas(df)
+
+## create a :route column for NCA
+@rtransform! df :route = "ev"
+
+## NCA Population
+pop_nca = read_nca(
+  df;
+  observations=:dv)
+## Mean Concentration vs Time Plot
+summary_observations_vs_time(
+  pop_nca,
+  axis=(; xlabel = "Time (hr)",
+          ylabel = "Warfarin Concentration (μg/mL)"))
 
 ### Step 1 - Model
 # 1-cmt oral model
