@@ -116,12 +116,11 @@ bounds = Dict(
 Nsubjects = length(pop)
 ## Decision
 dec = decision(
-  model, pop, params;            # Pumas API model, pop, params 
+  model, pop, params;          # Pumas API model, pop, params 
   type=:observation_times,     # only type supported currently
   bounds=[bound1],             # a `Vector` or `Dict` of time intervals
   # bounds=bounds,             # (if `Dict` adjust `N` argument properly)
   N=15,                        # total number of samples per subject
-  subject_multiples=fill(3, Nsubjects), # the number of times each subject is counted (default 1)
   minimum_offset=Minute(30),   # enforce a minimum duration between any 2 samples
   model_time_unit=Hour(1),     # unit of time assumed in the model definition and dynamics model
 )
