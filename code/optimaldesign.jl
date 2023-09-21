@@ -7,61 +7,63 @@ using PharmaDatasets
 # data from Bauer et. al 
 # Tutorial for $DESIGN in NONMEM: Clinical trial evaluation and optimization
 # DOI: 10.1002/psp4.12713
-datapath = dataset("warfarin", String)
-df = CSV.read(datapath, DataFrame; missingstring=[".", "", "NA"])
+df = dataset("warfarin")
 pop = read_pumas(df)
 
 ## create a :route column for NCA
 @rtransform! df :route = "ev"
 
 ## NCA Population
-pop_nca = read_nca(
-  df;
-  observations=:dv)
+pop_nca = read_nca(df; observations = :dv)
 ## Mean Concentration vs Time Plot
 summary_observations_vs_time(
-  pop_nca,
-  axis=(; xlabel = "Time (hr)",
-          ylabel = "Warfarin Concentration (μg/mL)"))
+    pop_nca,
+    axis = (;
+        xlabel = "Time (hr)",
+        ylabel = "Warfarin Concentration (μg/mL)",
+        xticks = 0:12:168,
+        yticks = 0:10,
+        limits = (-1, 121, -0.1, 10.1),
+    ),
+)
 
 ### Step 1 - Model
 # 1-cmt oral model
 model = @model begin
-  @param begin
-    θ₁ ∈ RealDomain(lower=0.0, init=0.15)
-    θ₂ ∈ RealDomain(lower=0.0, init=8.0)
-    θ₃ ∈ RealDomain(lower=0.0, init=1.0)
-    Ω  ∈ PSDDomain(3)
-    σ  ∈ RealDomain(lower=0.0001, init=sqrt(0.01))
-  end
-  @random begin
-    η ~ MvNormal(Ω)
-  end
-  @pre begin
-    Tvcl = θ₁
-    Tvv  = θ₂
-    Tvka = θ₃
-    CL   = Tvcl*exp(η[1])
-    Vc   = Tvv*exp(η[2])
-    Ka   = Tvka*exp(η[3])
-  end
-  @dynamics Depots1Central1
-  @vars begin
-    conc = Central / Vc
-  end
-  @derived begin
-    dv ~ @. Normal(log(conc), σ)
-  end
+    @param begin
+        tvcl ∈ RealDomain(; lower = 0)
+        tvvc ∈ RealDomain(; lower = 0)
+        tvka ∈ RealDomain(; lower = 0)
+        Ω ∈ PSDDomain(3)
+        σ ∈ RealDomain(; lower = 0)
+    end
+    @random begin
+        η ~ MvNormal(Ω)
+    end
+    @pre begin
+        CL = tvcl * exp(η[1])
+        Vc = tvvc * exp(η[2])
+        Ka = tvka * exp(η[3])
+    end
+    @dynamics Depots1Central1
+    @vars begin
+        conc = Central / Vc
+    end
+    @derived begin
+        dv ~ @. Normal(log(conc), σ)
+    end
 end
 
-params = (
-  θ₁ = 0.15,
-  θ₂ = 8.0,
-  θ₃ = 1.0,
-  Ω  = [0.07 0.0 0.0;
-        0.0 0.02 0.0;
-        0.0 0.0 0.6],
-  σ  = sqrt(0.01),
+params = (;
+    tvcl = 0.15,
+    tvvc = 8.0,
+    tvka = 1.0,
+    Ω = [
+        0.07 0.0 0.0
+        0.0 0.02 0.0
+        0.0 0.0 0.6
+    ],
+    σ = sqrt(0.01),
 )
 
 ### Interlude - Date and time API in Julia
@@ -96,19 +98,16 @@ t0 + Year(1)
 t0 + Second(1) + Minute(1) + Hour(1) + Day(1) + Week(1) + Month(1) + Year(1)
 
 ## Intervals for time bounds using the `..` operator
-bound1 = t0..tend
+bound1 = t0 .. tend
 # Careful with syntax, use `()`
-t0..tend + Day(1)   # just the finishing bound day
-(t0..tend) + Day(1) # both start and finishing bounds
+t0 .. tend + Day(1)   # just the finishing bound day
+(t0 .. tend) + Day(1) # both start and finishing bounds
 
 ### Fixed samples per time window
 # You can pass a `Dict` with:
 # - keys: Time bound interval
 # - values: number of samples in that interval
-bounds = Dict(
-  (t0..tend) => 15,
-  (t0..tend) + Day(1) => 10,
-)
+bounds = Dict((t0 .. tend) => 15, (t0 .. tend) + Day(1) => 10)
 
 
 ### Step 2 - Create a decision with constraints
@@ -116,13 +115,15 @@ bounds = Dict(
 Nsubjects = length(pop)
 ## Decision
 dec = decision(
-  model, pop, params;          # Pumas API model, pop, params 
-  type=:observation_times,     # only type supported currently
-  bounds=[bound1],             # a `Vector` or `Dict` of time intervals
-  # bounds=bounds,             # (if `Dict` adjust `N` argument properly)
-  N=15,                        # total number of samples per subject
-  minimum_offset=Minute(30),   # enforce a minimum duration between any 2 samples
-  model_time_unit=Hour(1),     # unit of time assumed in the model definition and dynamics model
+    model,
+    pop,
+    params;          # Pumas API model, pop, params 
+    type = :observation_times,     # only type supported currently
+    bounds = [bound1],             # a `Vector` or `Dict` of time intervals
+    # bounds=bounds,             # (if `Dict` adjust `N` argument properly)
+    N = 15,                        # total number of samples per subject
+    minimum_offset = Minute(30),   # enforce a minimum duration between any 2 samples
+    model_time_unit = Hour(1),     # unit of time assumed in the model definition and dynamics model
 )
 
 ### Step 3 - Optimize the design
@@ -130,12 +131,12 @@ dec = decision(
 # :doptimal: maximizes the (log) determinant of the expected information matrix.
 # :toptimal: maximizes the trace of the expected information matrix.
 @time result = design(
-  dec;
-  optimality=:doptimal,
-  time_limit=400.0,             # time limit in seconds, maximum 20min
-  nlp_tol=1e-4,                 # tolerance for the nonlinear solver
-  verbose=true,                 # display progress and information?
-  processors=Threads.nthreads() # multi-threaded and how many? (default 1)
+    dec;
+    optimality = :doptimal,
+    time_limit = 400.0,             # time limit in seconds, maximum 20min
+    nlp_tol = 1e-4,                 # tolerance for the nonlinear solver
+    verbose = true,                 # display progress and information?
+    processors = Threads.nthreads(), # multi-threaded and how many? (default 1)
 )
 
 ### Inspect the result
