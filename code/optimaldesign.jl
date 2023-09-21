@@ -17,53 +17,53 @@ pop = read_pumas(df)
 pop_nca = read_nca(df; observations = :dv)
 ## Mean Concentration vs Time Plot
 summary_observations_vs_time(
-    pop_nca,
-    axis = (;
-        xlabel = "Time (hr)",
-        ylabel = "Warfarin Concentration (μg/mL)",
-        xticks = 0:12:168,
-        yticks = 0:10,
-        limits = (-1, 121, -0.1, 10.1),
-    ),
+  pop_nca,
+  axis = (;
+    xlabel = "Time (hr)",
+    ylabel = "Warfarin Concentration (μg/mL)",
+    xticks = 0:12:168,
+    yticks = 0:10,
+    limits = (-1, 121, -0.1, 10.1),
+  ),
 )
 
 ### Step 1 - Model
 # 1-cmt oral model
 model = @model begin
-    @param begin
-        tvcl ∈ RealDomain(; lower = 0)
-        tvvc ∈ RealDomain(; lower = 0)
-        tvka ∈ RealDomain(; lower = 0)
-        Ω ∈ PSDDomain(3)
-        σ ∈ RealDomain(; lower = 0)
-    end
-    @random begin
-        η ~ MvNormal(Ω)
-    end
-    @pre begin
-        CL = tvcl * exp(η[1])
-        Vc = tvvc * exp(η[2])
-        Ka = tvka * exp(η[3])
-    end
-    @dynamics Depots1Central1
-    @vars begin
-        conc = Central / Vc
-    end
-    @derived begin
-        dv ~ @. Normal(log(conc), σ)
-    end
+  @param begin
+    tvcl ∈ RealDomain(; lower = 0)
+    tvvc ∈ RealDomain(; lower = 0)
+    tvka ∈ RealDomain(; lower = 0)
+    Ω ∈ PSDDomain(3)
+    σ ∈ RealDomain(; lower = 0)
+  end
+  @random begin
+    η ~ MvNormal(Ω)
+  end
+  @pre begin
+    CL = tvcl * exp(η[1])
+    Vc = tvvc * exp(η[2])
+    Ka = tvka * exp(η[3])
+  end
+  @dynamics Depots1Central1
+  @vars begin
+    conc = Central / Vc
+  end
+  @derived begin
+    dv ~ @. Normal(log(conc), σ)
+  end
 end
 
 params = (;
-    tvcl = 0.15,
-    tvvc = 8.0,
-    tvka = 1.0,
-    Ω = [
-        0.07 0.0 0.0
-        0.0 0.02 0.0
-        0.0 0.0 0.6
-    ],
-    σ = sqrt(0.01),
+  tvcl = 0.15,
+  tvvc = 8.0,
+  tvka = 1.0,
+  Ω = [
+    0.07 0.0 0.0
+    0.0 0.02 0.0
+    0.0 0.0 0.6
+  ],
+  σ = sqrt(0.01),
 )
 
 ### Interlude - Date and time API in Julia
@@ -107,7 +107,10 @@ t0 .. tend + Day(1)   # just the finishing bound day
 # You can pass a `Dict` with:
 # - keys: Time bound interval
 # - values: number of samples in that interval
-bounds = Dict((t0 .. tend) => 15, (t0 .. tend) + Day(1) => 10)
+bounds = Dict(
+  (t0 .. tend) => 15,
+  (t0 .. tend) + Day(1) => 10
+)
 
 
 ### Step 2 - Create a decision with constraints
@@ -115,15 +118,15 @@ bounds = Dict((t0 .. tend) => 15, (t0 .. tend) + Day(1) => 10)
 Nsubjects = length(pop)
 ## Decision
 dec = decision(
-    model,
-    pop,
-    params;          # Pumas API model, pop, params 
-    type = :observation_times,     # only type supported currently
-    bounds = [bound1],             # a `Vector` or `Dict` of time intervals
-    # bounds=bounds,             # (if `Dict` adjust `N` argument properly)
-    N = 15,                        # total number of samples per subject
-    minimum_offset = Minute(30),   # enforce a minimum duration between any 2 samples
-    model_time_unit = Hour(1),     # unit of time assumed in the model definition and dynamics model
+  model,
+  pop,
+  params;          # Pumas API model, pop, params 
+  type = :observation_times,     # only type supported currently
+  # bounds = [bound1],             # a `Vector` or `Dict` of time intervals
+  bounds = bounds,               # (if `Dict` adjust `N` argument properly)
+  # N = 15,                        # total number of samples per subject
+  minimum_offset = Minute(30),   # enforce a minimum duration between any 2 samples
+  model_time_unit = Hour(1),     # unit of time assumed in the model definition and dynamics model
 )
 
 ### Step 3 - Optimize the design
@@ -132,12 +135,13 @@ dec = decision(
 # :toptimal: maximizes the trace of the expected information matrix.
 # You can also set param_weights with :toptimal or :aoptimal designs.
 @time result = design(
-    dec;
-    optimality = :doptimal,
-    time_limit = 400.0,             # time limit in seconds, maximum 20min
-    nlp_tol = 1e-4,                 # tolerance for the nonlinear solver
-    verbose = true,                 # display progress and information?
-    processors = Threads.nthreads(), # multi-threaded and how many? (default 1)
+  dec;
+  optimality = :doptimal,
+  time_limit = 400.0,              # time limit in seconds, maximum 20min
+  nlp_tol = 1e-4,                  # tolerance for the nonlinear solver
+  verbose = true,                  # display progress and information?
+  processors = Threads.nthreads(), # multi-threaded and how many? (default 1)
+  # param_weights = [0.4, 0.1, 0.2]  # parameters weights for A/T-optimality
 )
 
 ### Inspect the result
@@ -147,7 +151,7 @@ optimaltimes(result)
 initvalue(result)
 # Optimal objective value
 optimalvalue(result)
-# D-Efficieny of the FIM
+# D-Efficiency of the FIM
 # (det(FIM_2) / det(FIM_1))^(1/M) where:
 # - FIM_2 is the Fisher information matrix (FIM) at the optimal design
 # - FIM_1 is the FIM at the initial design
