@@ -130,6 +130,7 @@ dec = decision(
 # :aoptimal: minimizes the trace of the inverse of the expected information matrix.
 # :doptimal: maximizes the (log) determinant of the expected information matrix.
 # :toptimal: maximizes the trace of the expected information matrix.
+# You can also set param_weights with :toptimal or :aoptimal designs.
 @time result = design(
     dec;
     optimality = :doptimal,
